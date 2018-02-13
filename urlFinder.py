@@ -34,16 +34,16 @@ class urlFinder:
 
         if self.synset_list.find(syn_id) == -1 :
             print(synset.name(), "pas dans la liste")
-            return urls
+            return
 
         print("Searching urls for " + synset.name())
         
         try:
-            urls += self.getResult(syn_id)
+            urls = self.getResult(syn_id)
         except (ValueError, requests.exceptions.RequestException):
             return # ok, never mind - try a different synset
 
-        return urls
+        return (synset, urls)
 
     def get_hyponyms(self, synset, depth=0):
         hyponyms = set()
@@ -57,6 +57,11 @@ class urlFinder:
     def wnid(self, synset):
         return '%s%.8d' % (synset.pos(), synset.offset())
 
+    def appendIfExist(self, list1, list2):
+        if list2 == None:
+            return list1
+        else:
+            return list1.append(list2)
 
     def find(self, word,  max_imgs = 100):
         img_urls = self.img_urls
@@ -72,7 +77,7 @@ class urlFinder:
         for synset in synsets:
             if len(img_urls) >= max_imgs:
                 break
-            img_urls += self.searchUrls(synset)
+            self.appendIfExist(img_urls, self.searchUrls(synset))
 
         # 2. Get hyponyms to sample from
         if len(img_urls) == 0:
@@ -80,7 +85,7 @@ class urlFinder:
                 for hn in self.get_hyponyms(synset):
                     if len(img_urls) >= max_imgs:
                         break
-                    img_urls += self.searchUrls(hn)
+                    self.appendIfExist(img_urls, self.searchUrls(synset))
                 
 
         # 3. If no images, try hyponyms of hypernyms
@@ -89,11 +94,15 @@ class urlFinder:
                 for hypernym in synset.hypernyms():
                     img_urls += self.searchUrls(hypernym)
                     for hn in self.get_hyponyms(hypernym):
-                        img_urls += self.searchUrls(hn)
+                        self.appendIfExist(img_urls, self.searchUrls(synset))
                         if len(img_urls) > max_imgs:
                             break
 
-        print('Got ', len(img_urls), 'urls!')
+
+        print('Got ', len(img_urls) * 10, 'urls')
+        print(img_urls)
+        print()
+        print()
 
         return img_urls
 

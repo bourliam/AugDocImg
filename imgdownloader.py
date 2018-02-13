@@ -3,7 +3,7 @@ import os
 import time
 import tarfile
 
-import urllib.request as urllib2
+import urllib.request as urlrequest
 import urllib.parse as urlparse
 
 
@@ -12,7 +12,7 @@ class ImageNetDownloader:
         self.host = 'http://www.image-net.org'
 
     def download_file(self, url, desc=None, renamed_file=None):
-        u = urllib2.urlopen(url)
+        u = urlrequest.urlopen(url)
 
         scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
         filename = os.path.basename(path)
