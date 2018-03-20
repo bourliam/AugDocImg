@@ -3,31 +3,33 @@ import sys
 import os
 from nltk.corpus import wordnet as wn
 from nltk.stem.wordnet import WordNetLemmatizer
+from random import shuffle
 import requests
 import time
 
 
-class urlFinder:
+class UrlFinder:
     def __init__(self):
-        self.img_urls = []
         self.synset_list = open('synset_list.txt', 'r').read()
         
     def getUrl(self, wnid):
         format_url = 'http://www.image-net.org/api/text/imagenet.synset.geturls?wnid={}'
         return format_url.format(wnid)
 
-    def getResult(self, syn_id):
+    def getResult(self, syn_id, num_urls=10):
         url = self.getUrl(syn_id)
         r = requests.get(url)
         urls = r.text.splitlines()
+        shuffle(urls)
 
         if urls[0] == 'The synset is not ready yet. Please stay tuned!':
-            print("Oups pas d'images !")
+            print("Pas d'images !")
             urls.pop()
 
-        return urls[:10]
 
-    def searchUrls(self, synset):
+        return urls[:num_urls]
+
+    def searchUrls(self, synset, num_urls=10):
         
         urls = []
         syn_id = self.wnid(synset)
@@ -39,7 +41,7 @@ class urlFinder:
         print("Searching urls for " + synset.name())
         
         try:
-            urls = self.getResult(syn_id)
+            urls = self.getResult(syn_id, num_urls)
         except (ValueError, requests.exceptions.RequestException):
             return # ok, never mind - try a different synset
 
@@ -63,48 +65,56 @@ class urlFinder:
         else:
             return list1.append(list2)
 
-    def find(self, word,  max_imgs = 100):
-        img_urls = self.img_urls
+
+    def findInHyponyms(self,synsets,max_imgs=100):
+        img_urls=[]
+        for synset in synsets:
+            for hn in synset.hyponyms():
+                if len(img_urls) >= max_imgs:
+                    break
+                self.appendIfExist(img_urls, self.searchUrls(hn))
+        return img_urls
+
+
+
+    def findFromSynsets(self, synsets, hyponyms = False, max_imgs = 100):
+        img_urls=[]
        
-
-        wnl = WordNetLemmatizer()
-        lem = wnl.lemmatize(word, pos=wn.NOUN)
-
-        synsets = wn.synsets(lem, pos=wn.NOUN)
-
-        print("Synsets: ", synsets)
+        print("\nSynsets: ", synsets)
 
         for synset in synsets:
             if len(img_urls) >= max_imgs:
                 break
             self.appendIfExist(img_urls, self.searchUrls(synset))
 
-        # 2. Get hyponyms to sample from
-        if len(img_urls) == 0:
-            for synset in synsets:
-                for hn in self.get_hyponyms(synset):
-                    if len(img_urls) >= max_imgs:
-                        break
-                    self.appendIfExist(img_urls, self.searchUrls(synset))
-                
+        # Get hyponyms
+        if hyponyms:
+            img_urls += self.findInHyponyms(synsets)
 
-        # 3. If no images, try hyponyms of hypernyms
+        return img_urls
+    
+
+
+    def findWithHypernyms(self,synsets,max_imgs=100):
+
+        img_urls = self.findFromSynsets(synsets)
+
         if len(img_urls) == 0:
             for synset in synsets:
                 for hypernym in synset.hypernyms():
-                    img_urls += self.searchUrls(hypernym)
-                    for hn in self.get_hyponyms(hypernym):
-                        self.appendIfExist(img_urls, self.searchUrls(synset))
-                        if len(img_urls) > max_imgs:
-                            break
-
-
-        print('Got ', len(img_urls) * 10, 'urls')
-        print(img_urls)
-        print()
-        print()
-
+                    self.appendIfExist(img_urls, self.searchUrls(hypernym))
+                    if len(img_urls) > max_imgs:
+                        break
         return img_urls
+    
 
 
+    def findFromWords(self, words, max_imgs = 100):
+        synsets=[]
+        for word in words:
+            wnl = WordNetLemmatizer()
+            lem = wnl.lemmatize(word, pos=wn.NOUN)
 
+            synsets += wn.synsets(lem, pos=wn.NOUN)
+        synsets= list(set(synsets))
+        return self.findWithHypernyms(synsets, max_imgs)

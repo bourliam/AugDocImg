@@ -1,7 +1,8 @@
 import numpy as np
 import os
 from os.path import join as pjoin
-from scipy.misc import imread, imresize
+from scipy.misc import imresize
+from imageio import imread
 import time
 import h5py
 
@@ -28,13 +29,14 @@ class Resnet:
         n_pictures = 0
 
         for picture_file in list_files:
-            if (os.path.isfile(pjoin(img_dir, picture_file)) and picture_file != 'sorted_aug_img_emb.h5' ):
+            if (os.path.isfile(pjoin(img_dir, picture_file)) and picture_file[-4:] == '.jpg'):
 
                 # Preprocess the picture
                 n_pictures += 1
                 files_path.append(pjoin(img_dir, picture_file))
                 temp = imread(pjoin(img_dir, picture_file))
-                print(picture_file  )
+                print(picture_file)
+                print(temp.shape)
                 temp = imresize(temp, (224,224)).astype("float32")
                 temp = preprocess_input(temp[np.newaxis])
 
@@ -46,26 +48,26 @@ class Resnet:
                     img_batch = np.vstack((img_batch, temp))
 
                 # Compute representation and save it
-                if n_pictures == 400:
-                    n_pictures = 0
-                    n_batch += 1
-                    first_step = True
-                    print("Computing batch %s"%n_batch)
-                    out_tensor = self.model.predict(img_batch)
-                    out_tensor = out_tensor.reshape((-1, out_tensor.shape[-1]))
-                    print("output shape:", out_tensor.shape)
+                # if n_pictures == 400:
+                #     n_pictures = 0
+                #     n_batch += 1
+                #     first_step = True
+                #     print("Computing batch %s"%n_batch)
+                #     out_tensor = self.model.predict(img_batch)
+                #     out_tensor = out_tensor.reshape((-1, out_tensor.shape[-1]))
+                #     print("output shape:", out_tensor.shape)
 
-                    # Serialize representations
-                    print("SAVING BATCH")
-                    h5f = h5py.File(
-                        pjoin(
-                            img_dir,
-                            "sorted_aug_img_emb_%s.h5"%n_batch
-                        ),
-                        'w'
-                    )
-                    h5f.create_dataset('img_emb', data=out_tensor)
-                    h5f.close()
+                #     # Serialize representations
+                #     print("SAVING BATCH")
+                #     h5f = h5py.File(
+                #         pjoin(
+                #             img_dir,
+                #             "sorted_aug_img_emb_%s.h5"%n_batch
+                #         ),
+                #         'w'
+                #     )
+                #     h5f.create_dataset('img_emb', data=out_tensor)
+                #     h5f.close()
 
 
         # Compute representations
