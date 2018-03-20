@@ -59,7 +59,7 @@ class ImageNetDownloader:
 
     def downloadImagesByURLs(self, title, imageUrls, number = 5):
         # save to the dir e.g: dog_images/
-        imgdir = os.path.join(self.mkDir(title), str(title) + '_images')
+        imgdir = os.path.join(self.mkDir("images"), str(title))
         if not os.path.exists(imgdir):
             os.mkdir(imgdir)
 

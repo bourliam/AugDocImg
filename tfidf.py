@@ -27,7 +27,7 @@ class TfIdf:
   def keywords(self, text, numb_to_retain = 5):
     docnames = [file for file in glob.glob("tfidfData/*.txt")]
     docnames += [file for file in glob.glob("texts/*")]
-    print('Filenames of the document collection: ')
+    print('\nFilenames of the document collection: ')
     print(docnames)
 
     documents = []
