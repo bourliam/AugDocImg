@@ -1,0 +1,297 @@
+AUGMENTING TEXT DOCUMENTS
+WITH IMAGES
+Project report
+March 11, 2018
+Maxime Bourliatoux
+Augmenting Text Documents with Images
+ABSTRACT
+The goal of this project is to illustrate a text article by picking an image in the ImageNet database.
+We try to find the topic of the text, propose images to the user and with his feedback, find the
+most accurate picture possible. To do so, we use multiple techniques like RAKE, TF-IDF, WordNet,
+Residual Neural Networks, PCA and KMeans.
+CONTENTS
+1 Problem statement 3
+1.1 Global problem . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.2 Part 1 - Fetch relevant images . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.3 Part 2 - Implement "Explore-by-Example" approach . . . . . . . . . . . . . . . . . . . 3
+2 Literature survey 4
+2.1 Finding the theme of the article . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+2.2 Retrieving images in the database . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+2.3 Improve the image selection . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+3 Techniques designed and implemented 6
+3.1 Context of the experiments . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+3.2 First approach: RAKE . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+3.2.1 How it works . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+3.2.2 Limitations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+3.3 A better algorithm: TF-IDF . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+3.3.1 The principle of the TF-IDF . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+3.3.2 Limitation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+3.3.3 Improvements of the TF-IDF . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+3.4 Using WordNet to find images in the ImageNet Database . . . . . . . . . . . . . . . . 7
+3.5 Finding the good illustration image . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+3.5.1 Finding more accurate images by exploring the Database . . . . . . . . . . . . 8
+3.5.2 Finding the good image with clustering . . . . . . . . . . . . . . . . . . . . . . 8
+4 Evaluation results 9
+4.1 First results : RAKE . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+4.2 More accurate results with the TF-IDF . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+4.3 Finding and downloading images . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+4.4 Improving the results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+5 Conclusion 12
+6 Bonus 12
+2
+Augmenting Text Documents with Images
+1
+PROBLEM STATEMENT
+1.1 Global problem
+Imagine that you are a journalist, a blogger or an editor. After you write an article in text, you would
+like to insert images from a large image database such as ImageNet to make the article interesting to
+the reader and catch his attention. Given the variety of articles that an editor may write, a manual
+process to retrieve such images is tedious and time-consuming.
+In this project, we aim to design a software tool with intelligent algorithms for automating the
+processing of augmenting text documents with images. We have two specific goals:
+1. The images retrieved must match the topic of a given article that an editor is editing.
+2. Often times retrieving images only based on the topic of the document is not sufficient. The
+editor is likely to have his own interpretation of whether an image is relevant or not.
+The project will be composed of two parts:
+1. Design an algorithm that, given a text, retrieves images form the image database relevant to the
+theme of the article.
+2. Implement an "Explore-by-Example" approach to have the closest match possible to the author’s
+idea.
+1.2 Part 1 - Fetch relevant images
+The first part of the problem is about fetching images from a database corresponding to the theme
+of an article. To do so, we have two things to do: First we need to get the topic of the article. Then
+having the theme we have to find images related in the image database. Those two tasks will need
+two different algorithms, we will do one after the other and then combine the results. The objective
+here is to have a base algorithm so that at least fetched images will not be irrelevant.
+1.3 Part 2 - Implement "Explore-by-Example" approach
+In the second part of the project, we will try to improve the algorithm, to make it more useful. Indeed
+the first part of the project could be replaced by a search on Google Images for the main topic and
+does not reflect the intent of the author. Therefore we will try to implement an "Explore-by-Example"
+approach, to let the author guide the algorithm in its images choices.
+Therefore the algorithm should first recommend a few images based on the topic, and solicit the
+user feedback on the images. Then the algorithm should incorporate such feedback to adjust the
+3
+Augmenting Text Documents with Images
+internal model of the editor’s interest, and retrieve a few more images for feedback. This process goes
+in iterations. We would like to design an algorithm that requires a minimum number of iterations to
+return a specified number of images that the editor deems relevant and interesting.
+2
+LITERATURE SURVEY
+2.1 Finding the theme of the article
+Rose, S., Engel, D., Cramer, N., & Cowley, W. (2010). Automatic keyword extraction from individual
+documents. Text Mining: Applications and Theory, 1-20.
+https://pdfs.semanticscholar.org/5a58/00deb6461b3d022c8465e5286908de9f8d4e.pdf
+This article presents the Rapid Automatic Keyword Extraction (RAKE) algorithm. An unsupervised
+method for extracting keywords from individual documents.
+Singhal, A. (2001). Modern information retrieval: A brief overview. IEEE Data Eng. Bull., 24(4),
+35-43.
+Madhu Kumari, Akshat Jain, Ankit Bhatia, Synonyms Based Term Weighting Scheme: An Extension
+to TF.IDF, In Procedia Computer Science, Volume 89, 2016, Pages 555-561, ISSN 1877-0509
+http://www.sciencedirect.com/science/article/pii/S1877050916311589
+This article explore the possibility to add synonyms recognition to the TF*IDF.
+Kewen Chen, Zuping Zhang, Jun Long, Hao Zhang, Turning from TF-IDF to TF-IGM for term
+weighting in text classification, In Expert Systems with Applications, Volume 66, 2016, Pages 245-260,
+ISSN 0957-4174
+http://www.sciencedirect.com/science/article/pii/S0957417416304870
+This article presents a variation of the TF*IDF algorithm that is supposed to outperform it.
+2.2 Retrieving images in the database
+To retrieve images based on the ImageNet database, I use WordNet with the python package NLTK.
+Indeed, the ImageNet database is organized according to the WordNet hierarchy. So with a base word,
+using NLTK we can find a corresponding "Synset" corresponding to an image set in the database.
+Deng, J., Dong, W., Socher, R., Li, L. J., Li, K., & Fei-Fei, L. (2009, June). Imagenet: A largescale
+hierarchical image database. In Computer Vision and Pattern Recognition, 2009. CVPR 2009.
+IEEE Conference on (pp. 248-255). IEEE.
+Miller, G. A. (1995). WordNet: a lexical database for English. Communications of the ACM,
+38 (11), 39-41.
+4
+Augmenting Text Documents with Images
+2.3 Improve the image selection
+He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. In
+Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 770-778).
+https://arxiv.org/pdf/1512.03385.pdf
+An article presenting the neural network ResNet50 and Residual Networks in general especially for
+image recognition.
+Ding, C., & He, X. (2004, July). K-means clustering via principal component analysis. In Proceedings
+of the twenty-first international conference on Machine learning (p. 29). ACM.
+http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.79.162&rep=rep1&type=pdf
+This article presents clustering via K-means and Principal Component Analysis.
+5
+Augmenting Text Documents with Images
+3
+TECHNIQUES DESIGNED AND IMPLEMENTED
+3.1 Context of the experiments
+To conduct the experiments, I worked with texts and images covering two topics: athletics and water
+areas such as oceans, seas, lake. Those two topics are different enough so that it will be quite easy to
+tell if the algorithm has made mistakes. They are also both quite documented, with a lot of texts and
+images on those topics. I have selected several texts from Wikipedia covering those subjects.
+Texts
+https://en.wikipedia.org/wiki/Marathon
+https://en.wikipedia.org/wiki/100_metres
+https://en.wikipedia.org/wiki/4_%C3%97_100_metres_relay
+https://en.wikipedia.org/wiki/110_metres_hurdles
+https://en.wikipedia.org/wiki/Ocean
+https://en.wikipedia.org/wiki/Sea
+https://en.wikipedia.org/wiki/Lake
+https://en.wikipedia.org/wiki/Pond
+Images
+I downloaded several images from the ImageNet database (www.image-net.org) and organized
+them in the same way than the database. I took images from the target clusters.
+3.2 First approach: RAKE
+To have some first results and obtain some insight on the problem, I made a first topic detection
+algorithm using RAKE (Rapid Automatic Keyword Extraction). The advantage was that this algorithm
+can find the topic of a text without a corpus or external resources. Moreover it is a tool made
+especially for keyword extraction which corresponds greatly with the task at hand.
+3.2.1 • How it works
+The principle behind RAKE is quite easy to comprehend. First we use a stop-word list to isolate the
+different candidates. Those candidates are meaningful groups of words, entities that carry a sense. In
+the general algorithm those candidates are composed of several words.
+Once we have our candidates, we build the graph of co-occurrences: we count for each word in
+the candidates how many times it is associated with another word. Then we compute the degree and
+frequency of the words and we then obtain the score of each word by dividing the first by the second.
+Once we have the scores of each word, we can add them to get the score of the corresponding
+candidate.
+6
+Augmenting Text Documents with Images
+3.2.2 • Limitations
+RAKE was great as a first approach. I have been able to quickly have a first working algorithm for
+topic extraction and I have then been able to start working on how to find corresponding images. But
+RAKE has some limitations. The main problem with RAKE is that it is designed to extract keywords
+to label some texts and those keywords are composed of multiple words. At first I thought that this
+wasn’t a problem but quickly I realized that to find images I had to have a topic with only one word,
+otherwise finding images corresponding would be harder. The problem is that when we limit RAKE
+on working with candidates with only one word, we have deg(w) = freq(w) and so all words have the
+same score: 1. The output of the algorithm is only the list of words sorted by frequency, without the
+common words such as "the" or "of" etc. That is not good enough.
+3.3 A better algorithm: TF-IDF
+The second algorithm I implemented to extract texts’ topic was TF-IDF (for Term Frequency - Inverse
+Document Frequency). This algorithm is better to find the meaningful words that are really important
+in the text, and so, that are likely to be close to the topic. To do so, the TF-IDF algorithm uses a
+corpus of texts and extracts the text’s important words.
+3.3.1 • The principle of the TF-IDF
+The main idea of the TF-IDF algorithm is contained in its name: It will look how often a word is in
+the text and in how many other documents it is. If the word frequency is high in our document but
+the word can not be found in other documents then it is a very important word and is a candidate for
+the topic.
+3.3.2 • Limitation
+The main limitation with the TF-IDF comes from its reliance on its texts corpus. If the corpus is
+biased, then the algorithm will be completely wrong. The difficulty is then to make a reliable corpus,
+that will enable us to find the correct words.
+3.3.3 • Improvements of the TF-IDF
+At first I tried to improve my corpus by adding texts from different sources with different topics. I
+also tried to use the full Wikipedia article database as a corpus, but even if it was possible, it would
+have been to heavy and the algorithm too slow.
+So to improve the TF-IDF algorithm I tried to suppress its dependency on its corpus. To do so, I
+used the global word frequency in English. This way instead of looking in the corpus to see if a word
+is commonly used or not, I use its frequency in the everyday life.
+3.4 Using WordNet to find images in the ImageNet Database
+Once we have the topic of the text, we are only halfway, we now need to find images that correspond
+to this topic.
+7
+Augmenting Text Documents with Images
+The ImageNet database that we use, was built using the WordNet hierarchy. This means that each
+image is linked with a synset. A synset is a representation of a word (or group of words) in a certain
+meaning. Synsets have relations between them, such like hypernyms or hyponyms. For example "dog"
+is an hyponym of "domestic animal" and an hypernym of "puppy".
+To find images corresponding to the topic, I take advantage of this construction. First of all, I
+find all the synsets related to the entry word using some nltk.corpus.wordnet functions. Then I look
+for each of those synsets if they have a corresponding cluster of images. If I don’t have any images
+after looking for each of the found synsets, I look for their hyponyms. And if I still don’t have images
+I climb up the hierarchy by looking at their hypernyms.
+To find images, first I have the list of the synsets linked to images in the database. If a synset is
+linked to a cluster, I use the ImageNet API to fetch the list of images’ urls for this specific synset.
+Once I have the list, I download some of those images.
+3.5 Finding the good illustration image
+3.5.1 • Finding more accurate images by exploring the Database
+Once we have images, we have completed the first part of the problem: finding relevant images. But
+we can still improve the results, to try to match the author point of view.
+The first step for doing so is to go deeper in the ImageNet database. Indeed, after the first part
+we collected images from several synsets that were linked to the words extracted from the text. But
+words have multiple meanings and the images found might be off target. So we show the user some
+of the images downloaded, and ask him to choose his favorites. We then explore the hyponyms of the
+synset linked with the chosen image, and repeat the process until we found a leaf of the ImageNet
+tree. By finding the smaller synset corresponding to the text we should have accurate images.
+3.5.2 • Finding the good image with clustering
+We now have quite good illustration images, corresponding to the topic of the text, belonging to
+the smallest synset possible. But these synsets still have a lot of images. Those images, even if they
+represent the same thing, might be very different. For example there are images of ocean with a bright
+sun, and some during storms, there are pictures of tropical beaches and some of cold cliffs. This is
+why the user should be able to continue his selection.
+To be able to find the good image, we do clustering on the last synset. This way we regroup images
+that are alike and enable the user to choose which group of image he prefers.
+To do this clustering I start by applying a Residual Neural Network (ResNet50) with weights
+already trained on the ImageNet database. This will transform the images into vectors with 2048
+features.
+Once I have those vectors I can perform a Principal Components Analysis (PCA) on them, and
+then, using KMeans, create the clusters.
+8
+Augmenting Text Documents with Images
+4
+EVALUATION RESULTS
+4.1 First results : RAKE
+For the first version of the algorithm I used RAKE as it is an unsupervised algorithm, working with
+a single file. It allows us to have first results.
+Results:
+Marathon 100m Ocean
+olympic marathon world record ocean
+boston marathon race planet
+world record women earth
+world records break seas
+marathon distance time surface
+marathon running set water
+training barrier life
+races oceans
+record titan
+distance world
+Table 1: Top 10 keywords with RAKE
+We see that the main idea behind the articles is here, but it seems not enough to find good
+illustration images.
+This results are promising because they show that we can find easily a first idea of the topic.
+4.2 More accurate results with the TF-IDF
+By using the TF-IDF algorithm we obtain better results. The keywords are composed of only one
+word which is better to find images.
+Marathon 100m Ocean
+marathon 100 ocean
+marathons world water
+runners 10 zone
+run record oceans
+running barrier surface
+Table 2: Top 5 keywords using TF-IDF with corpus
+9
+Augmenting Text Documents with Images
+With the TF-IDF using a corpus we can see that the results for the marathon and ocean articles
+are good but the results for the 100 meters seem useless.
+Marathon 100m Ocean
+marathon 100 ocean
+marathons world zone
+runners record water
+run sprinter oceans
+running athlete surface
+Table 3: Top 5 keywords using TF-IDF with word frequency
+By using the word frequencies we have exactly the same results for the marathon and ocean articles
+which were good, but we significantly improve the results for the 100 meters. Even if there is still the
+issue of the plurals that we should correct, we have a powerful algorithm capable of finding the topic
+of the text. By combining the first five results we get a pretty good idea of the subject of the text.
+4.3 Finding and downloading images
+The part about finding and downloading images works pretty great. The main issue is when one of
+the words has a meaning that leads to a synset totally different than the topic of text, but this is why
+we then ask for the user’s feedback.
+Figure 1: The first 10 images for the text "Ocean"
+Another issue is about contents that are not available anymore, which returns useless images, but
+this is something we can’t do anything about.
+10
+Augmenting Text Documents with Images
+Figure 2: Some useless image we come across
+4.4 Improving the results
+With the last parts of the project, we can get rid of the unwanted images. Therefore we quickly find
+beautiful images to illustrate our article.
+Figure 3: The image I’d choose to illustrate an article about oceans
+11
+Augmenting Text Documents with Images
+5
+CONCLUSION
+In conclusion we fulfilled our objective. We can find illustration images for a text, taking into account
+the feedback from the user to provide the best image possible.
+6
+BONUS
+After writing this report I thought of trying my algorithm on it to illustrate it. Here is the result:
+12

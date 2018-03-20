@@ -1,12 +1,16 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from nltk.corpus import stopwords
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
 from RAKE import rake
 import sys
 import urlFinder
 import imgdownloader
 import tfidf
-
+from showImages import ImageShower
+from tfidf_word_freq import TfIdfWordFreq
+from creation_resnet_rpz import Resnet
 
 stop_words = []
 stop_words += rake.load_stop_words('SmartStoplist.txt')
@@ -17,9 +21,13 @@ file = input("Name of file ? ") or 'texts/ocean'
 print("Working on file: " + file)
 text = open(file, 'r').read()
 
-methodeKeywords = input('Quel algorithme utiliser ? (tfidf/rake) ')
+methodeKeywords = input('Quel algorithme utiliser ? (tfidf/wordfreq/rake) ')
 
-if methodeKeywords != 'rake':
+if methodeKeywords == 'wordfreq':
+  wordFreq = TfIdfWordFreq(stop_words)
+  keywords = wordFreq.keywords(text)
+
+elif methodeKeywords != 'rake':
   print("Lancement de l'algorithme Tf-Idf")
   tfidf = tfidf.TfIdf(stop_words)
   keywords = tfidf.keywords(text)
@@ -41,23 +49,46 @@ for word, score in keywords:
 print()
 
 find = input("Find images ? (y/n) ")
-if find != 'y':
-  exit()
+if find == 'y':
+  urlFinder = urlFinder.urlFinder()
+  img_urls = []
+  for word in keywords:
+    img_urls = urlFinder.find(word[0])
+  print(img_urls)
 
-urlFinder = urlFinder.urlFinder()
-img_urls = []
-for word in keywords:
-  img_urls = urlFinder.find(word[0])
-print(img_urls)
 down = input("Download images ? (y/n) ")
-if down != 'y':
-  exit()
+if down == 'y':
+  urls = []
+  for synsetTuple in img_urls:
+    urls += synsetTuple[1]
 
-urls = []
-for synsetTuple in img_urls:
-  urls += synsetTuple[1]
+  downloader = imgdownloader.ImageNetDownloader()
+  downloader.downloadImagesByURLs("report", urls, 100)
 
-downloader = imgdownloader.ImageNetDownloader()
-downloader.downloadImagesByURLs("images", urls, 100)
+  print("Done")
 
-print("Done")
+print("Look at thoses images and note your favorite's number")
+imgShower = ImageShower("report/report_images")
+imgShower.show()
+imgNames = imgShower.imageNames()
+
+image = int(input("What was the number ? "))
+print("The name of the file is: ")
+print(imgNames[image])
+
+resnet = Resnet()
+X = resnet.process("images/images_images")
+
+pca = PCA(n_components=2)
+X_r = pca.fit(X).transform(X)
+print("shape:", X_r.shape)
+
+
+
+fig, ax = plt.subplots()
+ax.scatter(X_r[:,0], X_r[:,1])
+n = range(27)
+for i, txt in enumerate(n):
+    ax.annotate(txt, (X_r[i,0], X_r[i,1]))
+
+plt.show()
