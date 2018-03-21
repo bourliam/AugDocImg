@@ -20,80 +20,83 @@ from creation_resnet_rpz import Resnet
 from explore import Explorer
 import matplotlib.image as mpimg
 
-# stop_words = []
-# stop_words += rake.load_stop_words('SmartStoplist.txt')
-# stop_words += rake.load_stop_words('FoxStoplist.txt')
-# stop_words += stopwords.words('english')
+stop_words = []
+stop_words += rake.load_stop_words('SmartStoplist.txt')
+stop_words += rake.load_stop_words('FoxStoplist.txt')
+stop_words += stopwords.words('english')
 
 
 
-# file = input("Name of file ? ") or 'texts/ocean'
-# print("\nWorking on file: " + file)
-# text = open(file, 'r').read()
+file = input("Name of file ? ") or 'texts/ocean'
+print("\nWorking on file: " + file)
+text = open(file, 'r').read()
 
-# methodeKeywords = input('\nQuel algorithme utiliser ? (tfidf/wordfreq/rake) ')
+methodeKeywords = input('\nQuel algorithme utiliser ? (tfidf/wordfreq/rake) ')
 
-# if methodeKeywords == 'wordfreq':
-#   wordFreq = TfIdfWordFreq(stop_words)
-#   keywords = wordFreq.keywords(text)
+if methodeKeywords == 'wordfreq':
+  wordFreq = TfIdfWordFreq(stop_words)
+  keywords = wordFreq.keywords(text)
 
-# elif methodeKeywords != 'rake':
-#   print("\nLancement de l'algorithme Tf-Idf")
-#   tfidf = tfidf.TfIdf(stop_words)
-#   keywords = tfidf.keywords(text)
+elif methodeKeywords != 'rake':
+  print("\nLancement de l'algorithme Tf-Idf")
+  tfidf = tfidf.TfIdf(stop_words)
+  keywords = tfidf.keywords(text)
 
-# else:
+else:
 
-#   # 1. initialize RAKE by providing a path to a stopwords file and setting phrase length in words to 1
-#   stoppath = "RAKE/FoxStoplist.txt"
-#   rake_object = rake.Rake(stop_words, 2, 1, 2)
+  # 1. initialize RAKE by providing a path to a stopwords file and setting phrase length in words to 1
+  stoppath = "RAKE/FoxStoplist.txt"
+  rake_object = rake.Rake(stop_words, 2, 1, 2)
 
-#   # 2. run on RAKE on a given text
-#   keywords = rake_object.run(text)
-#   keywords = keywords[:5]
-
-
-# print("\nKeywords obtenus :")
-# for word, score in keywords:
-#   print("\t", word, ":", score)
+  # 2. run on RAKE on a given text
+  keywords = rake_object.run(text)
+  keywords = keywords[:5]
 
 
-# find = input("\nFind images ? (y/n) ")
-# if find == 'y':
-#   words = []
-#   for word in keywords:
-#     words.append(word[0])
-
-#   urlFinder = UrlFinder()
-#   img_urls = urlFinder.findFromWords(words)
-
-# else:
-#   img_urls=[
-#     (wn.synset('ocean.n.01'), [
-#       'http://farm4.static.flickr.com/3041/2888019312_da1509ce3d.jpg', 'http://farm1.static.flickr.com/162/342921378_23f49f2701.jpg', 'http://farm1.static.flickr.com/47/110891522_1c88cd6bce.jpg', 'http://farm4.static.flickr.com/3409/3198834261_2640fbd259.jpg', 'http://farm1.static.flickr.com/204/470286018_f0966ead25.jpg', 'http://farm1.static.flickr.com/53/119972596_b9278c2454.jpg', 'http://farm4.static.flickr.com/3052/2616079309_cf30f554f9.jpg', 'http://farm1.static.flickr.com/242/453208551_42208a9253.jpg', 'http://farm4.static.flickr.com/3157/2909074563_0a972ae6ff.jpg', 'http://farm3.static.flickr.com/2640/4107071309_274c5efd22.jpg'
-#       ]),
-#     (wn.synset('water.n.06'), [
-#       'http://farm1.static.flickr.com/50/141618794_0b30839512.jpg', 'http://farm4.static.flickr.com/3240/2842144940_d50bc27d49.jpg', 'http://farm3.static.flickr.com/2204/1808115684_8506dcd679.jpg', 'http://farm4.static.flickr.com/3285/3061137477_b579520c8f.jpg', 'http://farm4.static.flickr.com/3410/3329791790_7319591ddc.jpg', 'http://farm3.static.flickr.com/2136/3534403642_eb8c64f77a.jpg', 'http://farm3.static.flickr.com/2053/2211522535_0c090f861e.jpg', 'http://farm3.static.flickr.com/2575/3881891825_5f995810f9.jpg', 'http://farm4.static.flickr.com/3371/3414586241_462262794b.jpg', 'http://farm3.static.flickr.com/2486/4133911360_7db5e237d1.jpg'
-#       ]),
-#     (wn.synset('airfoil.n.01'), ['http://www.airstrike.com.au/images/Product/Vladimir%20Models/g2en5001.jpg', 'http://www.nesail.com/pictures/impulse2.jpg', 'http://farm4.static.flickr.com/3166/2699711511_34d7c7cdb7.jpg', 'http://www.se2funworks.com/photogallery/EF%20Extra/EF%20300%20Thumbnail.JPG', 'http://farm2.static.flickr.com/1416/534259053_4b70a3460b.jpg', 'http://www.themarcs.org/uploads/images/traders/airfoilz_yak.jpg', 'http://farm4.static.flickr.com/3028/3020546041_80ff5b23c6.jpg', 'http://site.nitroplanes.com/biplane00517.jpg', 'http://farm4.static.flickr.com/3078/2569442912_79a7cda124.jpg', 'http://farm4.static.flickr.com/3228/2445842255_9068949398.jpg'
-#     ])
-#   ]
+print("\nKeywords obtenus :")
+for word, score in keywords:
+  print("\t", word, ":", score)
 
 
-# down = input("\nDownload images ? (y/n) ")
-# if down == 'y':
-#   urls = []
-#   for synsetTuple in img_urls:
-#     urls += synsetTuple[1]
+find = input("\nFind images ? (y/n) ")
+if find == 'y':
+  words = []
+  for word in keywords:
+    words.append(word[0])
 
-#   downloader = imgdownloader.ImageNetDownloader()
-#   downloader.downloadImagesByURLs("0", urls, 100)
+  urlFinder = UrlFinder()
+  img_urls = urlFinder.findFromWords(words)
 
-#   print("\n\tDone")
+  print("\n \t Urls found:")
+  print(img_urls)
+
+else:
+  img_urls=[
+    (wn.synset('ocean.n.01'), [
+      'http://farm4.static.flickr.com/3041/2888019312_da1509ce3d.jpg', 'http://farm1.static.flickr.com/162/342921378_23f49f2701.jpg', 'http://farm1.static.flickr.com/47/110891522_1c88cd6bce.jpg', 'http://farm4.static.flickr.com/3409/3198834261_2640fbd259.jpg', 'http://farm1.static.flickr.com/204/470286018_f0966ead25.jpg', 'http://farm1.static.flickr.com/53/119972596_b9278c2454.jpg', 'http://farm4.static.flickr.com/3052/2616079309_cf30f554f9.jpg', 'http://farm1.static.flickr.com/242/453208551_42208a9253.jpg', 'http://farm4.static.flickr.com/3157/2909074563_0a972ae6ff.jpg', 'http://farm3.static.flickr.com/2640/4107071309_274c5efd22.jpg'
+      ]),
+    (wn.synset('water.n.06'), [
+      'http://farm1.static.flickr.com/50/141618794_0b30839512.jpg', 'http://farm4.static.flickr.com/3240/2842144940_d50bc27d49.jpg', 'http://farm3.static.flickr.com/2204/1808115684_8506dcd679.jpg', 'http://farm4.static.flickr.com/3285/3061137477_b579520c8f.jpg', 'http://farm4.static.flickr.com/3410/3329791790_7319591ddc.jpg', 'http://farm3.static.flickr.com/2136/3534403642_eb8c64f77a.jpg', 'http://farm3.static.flickr.com/2053/2211522535_0c090f861e.jpg', 'http://farm3.static.flickr.com/2575/3881891825_5f995810f9.jpg', 'http://farm4.static.flickr.com/3371/3414586241_462262794b.jpg', 'http://farm3.static.flickr.com/2486/4133911360_7db5e237d1.jpg'
+      ]),
+    (wn.synset('airfoil.n.01'), ['http://www.airstrike.com.au/images/Product/Vladimir%20Models/g2en5001.jpg', 'http://www.nesail.com/pictures/impulse2.jpg', 'http://farm4.static.flickr.com/3166/2699711511_34d7c7cdb7.jpg', 'http://www.se2funworks.com/photogallery/EF%20Extra/EF%20300%20Thumbnail.JPG', 'http://farm2.static.flickr.com/1416/534259053_4b70a3460b.jpg', 'http://www.themarcs.org/uploads/images/traders/airfoilz_yak.jpg', 'http://farm4.static.flickr.com/3028/3020546041_80ff5b23c6.jpg', 'http://site.nitroplanes.com/biplane00517.jpg', 'http://farm4.static.flickr.com/3078/2569442912_79a7cda124.jpg', 'http://farm4.static.flickr.com/3228/2445842255_9068949398.jpg'
+    ])
+  ]
 
 
-# explorer = Explorer(img_urls)
-# explorer.explore()
+down = input("\nDownload images ? (y/n) ")
+if down == 'y':
+  urls = []
+  for synsetTuple in img_urls:
+    urls += synsetTuple[1]
+
+  downloader = imgdownloader.ImageNetDownloader()
+  downloader.downloadImagesByURLs("0", urls, 100)
+
+  print("\n\tDone")
+
+
+explorer = Explorer(img_urls)
+explorer.explore()
 
 
 
